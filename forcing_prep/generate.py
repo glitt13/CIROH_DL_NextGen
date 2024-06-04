@@ -30,10 +30,10 @@ def process_geo_data(gdf, data, name):
     lats = slice(extent[1], extent[3])
     lons = slice(extent[0], extent[2])
     # In  case the data is upside down, flip the y axis
-    flipped = bool(len(data.latitude) > 1 and data.latitude[1] > data.latitude[0])
-    if flipped:
-        data = data.isel(latitude=slice(None, None, -1))
-    data = forcing.sel(longitude=lons, latitude=lats)
+    # flipped = bool(len(data.latitude) > 1 and data.latitude[1] > data.latitude[0])
+    # if flipped:
+    #     data = data.isel(latitude=slice(None, None, -1))
+    data = data.sel(longitude=lons, latitude=lats)
     # Load or compute coverage masks
     save = Path(f"{name}_coverage.parquet")
     if save.exists():
@@ -57,7 +57,7 @@ def process_geo_data(gdf, data, name):
     # Stack all the raster variables into a single multi-dimension array
     # This makes the windowing algorithm much more efficient as it can broadcast
     # operations arcoss all the variable data at once
-    data = data.to_dataarray()
+    data = data.to_array()
 
     # TODO move these chunk params to arguements/options
     # These were chosen based on processing HUC 01 (19k geometries) within reasonable
