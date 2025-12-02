@@ -99,7 +99,7 @@ if __name__ == "__main__":
     _level_vars_fcst = config['level_vars_fcst']
     apcp_fcst_hr = config['fcst_hr'] # when the 'nowcast' is desired, this should be 0
     _drop_vars = config['drop_vars']
-    
+    naive_basin_agg = config.get('naive_basin_agg', False)
     
 
     actual_fcst_dt_hr = apcp_fcst_hr + 1 # for accumulated precip, the actual forecast timestamp is accumulated precip at the end of an hour, so add 1 hour. E.g. if nowcast is desired, apcp_fcst_hr = 0, but we need to add 1 hour to represent the accumulated precip that actually happened.
@@ -198,15 +198,25 @@ if __name__ == "__main__":
                 # https://mesowest.utah.edu/html/hrrr/zarr_documentation/html/ex_python_plot_zarr.html#:~:text=Plotting%20HRRR%20Zarr%20data%20for%20a%20single%20gridpoint.%20This%20python
                 gdf = gdf_raw.to_crs(proj)
 
-            df = process_geo_data(gdf, data=forcing, name = b, y_lat_dim = y_lat_dim, x_lon_dim = x_lon_dim, id_col=id_col, out_dir = out_dir, redo = redo)
-            df = df.to_dataframe()
+            xrds = process_geo_data(gdf, data=forcing, name = b, y_lat_dim = y_lat_dim, x_lon_dim = x_lon_dim, id_col=id_col, out_dir = out_dir, redo = redo)
+            df = xrds.to_dataframe()
             # Save results by basin average and subcatchment
             save_path_base = f'{out_dir}/camels_{date}' # Main directory based on date
             cats = df.groupby('divide_id') # Note that 'divide_id' has become a standardized colname at this point
             path = Path(save_path_base)
             Path.mkdir(path, exist_ok=True)
-            for name, data in cats:
+            for nam, data in cats:
                 data = data.droplevel('divide_id')
-                data.to_csv(path / f"{name}.csv")
-            agg = df.groupby("time").mean()
-            agg.to_csv(path / f"camels_{b}_agg.csv")
+                data.to_csv(path / f"{nam}.csv")
+            if naive_basin_agg == True: # This was the historic approach to organizing data, prior to 2025-Dec
+                agg = df.groupby("time").mean()
+            else:
+                # Aggregation weights - must be weighted by the area of each divide
+                path_cov = Path(f"{out_dir}/{b}_coverage.parquet")
+                cov = pd.read_parquet(path_cov)
+                ser_sqkm = cov['coverage'].groupby('divide_id').sum()
+                ser_frac = ser_sqkm/ser_sqkm.sum()
+                wt_vals = df.mul(ser_frac, level='divide_id', axis=0)
+                agg = wt_vals.groupby(level='time').sum()
+            uniq_name = f'{b}_{date}'
+            agg.to_csv(path / f"{uniq_name}_agg.csv")

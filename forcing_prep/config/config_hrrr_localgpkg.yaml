@@ -16,7 +16,7 @@ out_dir: "{home_dir}/noaa/data/hrrr/out_gagesII_lambconf" # The local storage da
 dir_custom_gpkg: "{home_dir}/noaa/camels/gagesII_wood" # OPTIONAL. The location where geopackage data are stored locally (in-case hydrofabric gpkg files undesired)
 epsg: 4326 # the CRS of the locally stored geopackage data (if not using hydrofabric)
 id_col: 'hru_id'
-
+naive_basin_agg: False # If True, average the forcing data across entire basin assuming all divides have equal weight (incorrect, but here for posterity pre-Dec 2025). Default False if not provided in config file.
 
 x_lon_dim: 'projection_x_coordinate' # The longitude term in the HRRR dataset
 y_lat_dim: 'projection_y_coordinate' # The latitude term in the HRRR dataset
