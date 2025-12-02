@@ -13,10 +13,6 @@ Entrypoint for resampling zarr based AORC to hy_features catchments.
     Nels Frazier <nfrazier@lynker.com>
     Guy Litt <glitt@lynker.com>
 
-    Version
-    -------
-    0.2
-
     Example
     -------
     python /path/to/git/CIROH_DL_NextGen/forcing_prep/generate.py "/path/to/git/CIROH_DL_NextGen/forcing_prep/config_aorc.yaml"
@@ -70,7 +66,7 @@ def generate_forcing(gdf: gpd.GeoDataFrame, kwargs: dict) -> None:
     nc_out = kwargs.pop('netcdf', True)
     uniq_name = f'{name}_{year_str}'
     naive_basin_agg = kwargs.get('naive_basin_agg',False)
-    
+
     xrds = process_geo_data(gdf, forcing, name, **kwargs)
     # save to netcdf is requested
     if nc_out:
