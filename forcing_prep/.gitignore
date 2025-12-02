@@ -2,3 +2,9 @@ venv/
 *.parquet
 __pycache__
 camels_*/
+.DS_Store
+*egg-info
+*.egg
+.eggs/
+build/
+dist/
