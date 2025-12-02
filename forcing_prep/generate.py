@@ -33,7 +33,7 @@ import numpy as np
 import s3fs
 import xarray as xr
 
-from geo_proc import process_geo_data
+from forcing_prep.geo_proc import process_geo_data
 
 dask.config.set(pool=ThreadPool(12))
 

@@ -53,8 +53,8 @@ from dask.diagnostics import ProgressBar
 import warnings
 
 # The custom functions
-from hrrr_proc import prep_date_time_range, _map_open_files_hrrrzarr, _gen_hrrr_zarr_urls
-from geo_proc import process_geo_data
+from forcing_prep.hrrr_proc import prep_date_time_range, _map_open_files_hrrrzarr, _gen_hrrr_zarr_urls
+from forcing_prep.geo_proc import process_geo_data
 
 dask.config.set(pool=ThreadPool(12))
 from functools import partial

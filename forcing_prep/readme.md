@@ -2,11 +2,22 @@
 
 # Environment
 Create a virtual environment in forcing_prep directory and install the required modules
+
+If you wish to quickly install the package and requirements, use `uv` (Recommended):
+```sh
+cd path/to/CIROH_DL_NEXTGEN/forcing_prep
+uv venv ../.venv --python=3.9
+uv source ../.venv/bin/activate
+uv pip install -r requirements.txt
+```
+
+If you just want to use pip, try:
 ```sh
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
+
 You may need to make the generate script executable
 ```sh
 chmod +x generate.py

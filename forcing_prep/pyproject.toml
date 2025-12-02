@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+# project metadata.
+[project]
+name = "forcing_prep"
+version = "0.2"
+authors = [
+  { name = "Nels Frazier", email = "nfrazier@lynker.com" },
+  { name = "Guy Litt", email = "glitt@lynker.com" },
+  { name = "Jonathan Frame", email = "jmframe@ua.edu" }
+]
+description = "Aggregates gridded forcing data to hydrofabric divides and basins"
+
+# For a longer description, point to your README file.
+readme = "README.md"
+
+requires-python = ">=3.8"
+
+# Classifiers help users find your project on PyPI.
+# Full list: https://pypi.org/classifiers/
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+
+dependencies = [
+    "setuptools",
+    "dask",
+    "exactextract",
+    "fsspec",
+    "geopandas",
+    "rioxarray",
+    "s3fs",
+    "xarray",
+    "zarr",
+    "netCDF4",
+    "cartopy", # For HRRR processing
+    "pyogrio",
+]
+
+[tool.setuptools]
+packages = ["forcing_prep"]
+
+# This section defines URLs for your project (e.g., on PyPI).
+[project.urls]
+"Homepage" = "https://github.com/jmframe/CIROH_DL_NextGen"
+"Bug Tracker" = "https://github.com/jmframe/CIROH_DL_NextGen/issues"
+
+
+#  optional dependencies (e.g., for 'dev' or 'test').
+# Users can install these with: pip install .[dev,test]
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+]
+test = [
+    "pytest",
+]

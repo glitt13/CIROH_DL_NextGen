@@ -26,8 +26,8 @@ import xarray as xr
 from dask.diagnostics import ProgressBar
 import dask.dataframe as ddf
 
-from aggregate import window_aggregate
-from weights import get_all_cov, get_weights_df
+from forcing_prep.aggregate import window_aggregate
+from forcing_prep.weights import get_all_cov, get_weights_df
 
 def process_geo_data(gdf, data, name, y_lat_dim, x_lon_dim, id_col = 'divide_id', out_dir = '', redo = False, cvar = 8, ctime_max = 120, cid = -1):
     '''

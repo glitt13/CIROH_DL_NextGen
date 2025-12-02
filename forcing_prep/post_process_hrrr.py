@@ -13,7 +13,7 @@ import yaml
 from pathlib import Path
 import pandas as pd
 import xarray as xr
-from generate import to_ngen_netcdf
+from forcing_prep.generate import to_ngen_netcdf
 import warnings
 
 if __name__ == "__main__":
