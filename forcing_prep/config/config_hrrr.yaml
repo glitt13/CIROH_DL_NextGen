@@ -12,6 +12,7 @@ cid: -1 # The divide_id chunk size. Default -1 means all divide_ids in a basin. 
 redo: false # Set to true if you want to ensure intermediate data files not read in from local storage
 
 out_dir: "{home_dir}/noaa/data/hrrr/out" # The local storage data output directory. 
+naive_basin_agg: False # If True, average the forcing data across entire basin assuming all divides have equal weight (incorrect, but here for posterity pre-Dec 2025). Default False if not provided in config file.
 
 x_lon_dim: 'projection_x_coordinate' # The longitude term in the HRRR dataset
 y_lat_dim: 'projection_y_coordinate' # The latitude term in the HRRR dataset

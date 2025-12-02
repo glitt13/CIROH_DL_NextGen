@@ -69,14 +69,15 @@ def generate_forcing(gdf: gpd.GeoDataFrame, kwargs: dict) -> None:
     out_dir = kwargs.get('out_dir', './')
     nc_out = kwargs.pop('netcdf', True)
     uniq_name = f'{name}_{year_str}'
-
-    df = process_geo_data(gdf, forcing, name, **kwargs)
+    naive_basin_agg = kwargs.get('naive_basin_agg',False)
+    
+    xrds = process_geo_data(gdf, forcing, name, **kwargs)
     # save to netcdf is requested
     if nc_out:
-        to_ngen_netcdf(df, out_dir, uniq_name)
+        to_ngen_netcdf(xrds, out_dir, uniq_name)
         path = out_dir
     else:
-        df = df.to_dataframe()
+        df = xrds.to_dataframe()
             
         cats = df.groupby("divide_id")
         path = Path(f"{out_dir}/camels_{uniq_name}")
@@ -87,14 +88,17 @@ def generate_forcing(gdf: gpd.GeoDataFrame, kwargs: dict) -> None:
             data.to_csv(path / f"{nam}_{uniq_name}.csv")
     # Write aggregated basin timeseries (all subcatchments averaged together)
     # See comment at end of to_ngen_netcdf for why this is still done in csv for now
-    df = df.to_dataframe()
-    # Aggregation weights - must be weighted by the area of each divide
-    path_cov = Path(f"{out_dir}/{name}_coverage.parquet")
-    cov = pd.read_parquet(path_cov)
-    ser_sqkm = cov['coverage'].groupby('divide_id').sum()
-    ser_frac = ser_sqkm/ser_sqkm.sum()
-    wt_vals = df.mul(ser_frac, level='divide_id', axis=0)
-    agg = wt_vals.groupby(level='time').sum()
+    df = xrds.to_dataframe()
+    if naive_basin_agg == True: # This was the historic approach to organizing data, prior to 2025-Dec
+        agg = df.groupby("time").mean()
+    else:
+        # Aggregation weights - must be weighted by the area of each divide
+        path_cov = Path(f"{out_dir}/{name}_coverage.parquet")
+        cov = pd.read_parquet(path_cov)
+        ser_sqkm = cov['coverage'].groupby('divide_id').sum()
+        ser_frac = ser_sqkm/ser_sqkm.sum()
+        wt_vals = df.mul(ser_frac, level='divide_id', axis=0)
+        agg = wt_vals.groupby(level='time').sum()
     agg.to_csv(path / f"{uniq_name}_agg.csv")
 
 if __name__ == "__main__":
@@ -122,7 +126,7 @@ if __name__ == "__main__":
     x_lon_dim = config['x_lon_dim']
     y_lat_dim = config['y_lat_dim']
     out_dir = Path(config['out_dir'].format(home_dir=str(Path.home())))
-
+    naive_basin_agg = config.get('naive_basin_agg', False)
     # Setup the s3fs filesystem that is going to be used by xarray to open the zarr files
     _s3 = s3fs.S3FileSystem(anon=True)
     if gpkg is None:
@@ -140,6 +144,7 @@ if __name__ == "__main__":
     out_dir = Path(out_dir/f'{year_str}')
     config['out_dir'] = out_dir
     config['year_str'] = year_str
+    config['naive_basin_agg'] = naive_basin_agg
     # TODO add search for existing years and only fill in those which are missing
 
     # Create output directory in case it does not exist

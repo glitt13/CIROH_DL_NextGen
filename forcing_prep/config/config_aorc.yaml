@@ -19,6 +19,7 @@ redo: false # Set to true if you want to ensure intermediate data files not read
 x_lon_dim: "longitude" # The longitude term in the AORC dataset
 y_lat_dim: "latitude" # The latitude term in the AORC dataset
 out_dir: "{home_dir}/noaa/data/aorc" # The local storage data output directory. 
+naive_basin_agg: False # If True, average the forcing data across entire basin assuming all divides have equal weight (incorrect, but here for posterity pre-Dec 2025). Default False if not provided in config file.
 
 # By default, will generate ngen compatible netcdf files, to generate CSV files
 # instead, set the following key with false
