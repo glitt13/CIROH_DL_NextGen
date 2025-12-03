@@ -51,6 +51,7 @@ import s3fs
 import xarray as xr
 from dask.diagnostics import ProgressBar
 import warnings
+import re
 
 # The custom functions
 from forcing_prep.hrrr_proc import prep_date_time_range, _map_open_files_hrrrzarr, _gen_hrrr_zarr_urls
@@ -107,13 +108,17 @@ if __name__ == "__main__":
     fs = s3fs.S3FileSystem(anon=True)
     # List all the basins inside the hydrofabric s3 bucket path
     if 'all' in basins:
-        # Expected format: 's3://lynker-spatial/hydrofabric/v20.1/camels/Gage_{basin_id}.gpkg'
-        # base_path = 's3://lynker-spatial/hydrofabric/v20.1/camels/'
-        base_path = str(Path(_basin_url).parent)
-        if 's3://' not in base_path:
-            base_path = str(base_path).replace('s3:/','s3://')
-        # TODO provide an option if dir_custom_gpkg exists
-        basins = np.unique([str(Path(x).stem.split('_')[1]) for x in  fs.ls(base_path) if '/Gage_' in x])
+        if dir_custom_gpkg is not None:
+            all_files = list(dir_custom_gpkg.glob('*.gpkg'))
+            basins = [str(re.search(r'\d+', x.stem).group()) for x in all_files]
+        else:
+            # Expected format: 's3://lynker-spatial/hydrofabric/v20.1/camels/Gage_{basin_id}.gpkg'
+            # base_path = 's3://lynker-spatial/hydrofabric/v20.1/camels/'
+            base_path = str(Path(_basin_url).parent)
+            if 's3://' not in base_path:
+                base_path = str(base_path).replace('s3:/','s3://')
+            # TODO provide an option if dir_custom_gpkg exists
+            basins = np.unique([str(Path(x).stem.split('_')[1]) for x in  fs.ls(base_path) if '/Gage_' in x])
 
     Path.mkdir(Path(out_dir), exist_ok = True)
 
