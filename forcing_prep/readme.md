@@ -6,7 +6,7 @@ Create a virtual environment in forcing_prep directory and install the required 
 If you wish to quickly install the package and requirements, use `uv` (Recommended):
 ```sh
 cd path/to/CIROH_DL_NEXTGEN/forcing_prep
-uv venv ../.venv --python=3.9
+uv venv ../.venv --python=3.13
 uv source ../.venv/bin/activate
 uv pip install -r requirements.txt
 ```
