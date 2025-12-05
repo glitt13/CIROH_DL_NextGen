@@ -1,15 +1,17 @@
-aorc_source: "s3://noaa-nws-aorc-v1-1-1km" # url of AORC data stored as zarr files in s3
+aorc_source: "s3://noaa-nws-aorc-v1-1-1km" #  url of AORC data stored as zarr files in s3
 aorc_year_url_template: "{source}/{year}.zarr" # filename format of AORC zarr data files
-# These are camels specific configurations, if you wish to process a single
-# ngen hydrofabric geopackage, you can override the camels specifics by setting the following
-#gpkg: <path_to_geopkg>
+# The basin_url_template example corresponds to camels specific configurations, if you wish to process a single
+# ngen hydrofabric geopackage, you can override the camels specifics by setting gpkg (single file) OR dir_custom_gpkg (directory of files)
+#gpkg: <path_to_geopkg> # OPTIONAL. The location of a single geopackage file to process. Note that f-string formatting {home_dir} will substitute to "~/"
+#dir_custom_gpkg: "{home_dir}/noaa/camels/gagesII_wood" # OPTIONAL. The location where geopackage data are stored locally (in-case hydrofabric gpkg files undesired). All basins in this directory will be processed. Note that f-string formatting {home_dir} will substitute to "~/". If provided, will then ignore basin_url_template
+# id_col: 'GAGE_ID' # OPTIONAL. Default 'divide_id'. The column name of the unique basin identifier in the geopackage file. Default 'divide_id' for hydrofabric v2.2.
 # in which case the following two keys are ignored and forcings are generated
-# for that single geopackage
-basin_url_template: "s3://lynker-spatial/hydrofabric/v20.1/camels/Gage_{basin_id}.gpkg" # URL of CAMELS basin geopackages
-basins:
+# for that single geopackage or 
+basin_url_template: "s3://lynker-spatial/hydrofabric/v20.1/camels/Gage_{basin_id}.gpkg" # URL of CAMELS basin geopackages. Ignored if dir_custom_gpkg provided.
+basins: 
   #- 1022500 #may list out basins of interest, or simply specify 'all'
   - 'all'
-years:
+years: 
   - 2022 # The beginning year of interest, bgn_yr. May go as low as 1979.
   - 2024 # This must be at least bgn_yr + 1 to represent a single year. e.g. bgn_yr = 2018, end_year = 2019 means grab data throughout 2018 only. Default 2024 means data through 2023 grabbed.
 cvar: 8 # Chunk size for variables. Default 8.
@@ -18,8 +20,8 @@ cid: -1 # The divide_id chunk size. Default -1 means all divide_ids in a basin. 
 redo: false # Set to true if you want to ensure intermediate data files not read in from local storage
 x_lon_dim: "longitude" # The longitude term in the AORC dataset
 y_lat_dim: "latitude" # The latitude term in the AORC dataset
-out_dir: "{home_dir}/noaa/data/aorc" # The local storage data output directory. 
-naive_basin_agg: False # If True, average the forcing data across entire basin assuming all divides have equal weight (incorrect, but here for posterity pre-Dec 2025). Default False if not provided in config file.
+out_dir: "{home_dir}/noaa/data/aorc" # The local storage data output directory. Note that f-string formatting {home_dir} will substitute to "~/"
+naive_basin_agg: False # If True, average the forcing data across entire basin assuming all divides have equal weight (incorrect, but here for backwards compatibility of methods pre-Dec 2025). Default False if not provided in config file.
 
 # By default, will generate ngen compatible netcdf files, to generate CSV files
 # instead, set the following key with false
