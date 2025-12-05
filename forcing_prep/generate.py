@@ -29,6 +29,7 @@ import numpy as np
 import s3fs
 import xarray as xr
 import pandas as pd
+import re
 
 from forcing_prep.geo_proc import process_geo_data
 
@@ -65,7 +66,7 @@ def generate_forcing(gdf: gpd.GeoDataFrame, kwargs: dict) -> None:
     out_dir = kwargs.get('out_dir', './')
     nc_out = kwargs.pop('netcdf', True)
     uniq_name = f'{name}_{year_str}'
-    naive_basin_agg = kwargs.get('naive_basin_agg',False)
+    naive_basin_agg = kwargs.pop('naive_basin_agg',False)
 
     xrds = process_geo_data(gdf, forcing, name, **kwargs)
     # save to netcdf is requested
@@ -111,6 +112,9 @@ if __name__ == "__main__":
     _aorc_source = config.pop('aorc_source')
     _aorc_year_url = config.pop('aorc_year_url_template')
     _basin_url = config.pop('basin_url_template')
+    dir_custom_gpkg = config.pop('dir_custom_gpkg',None)
+    if dir_custom_gpkg is not None:
+        dir_custom_gpkg = Path(dir_custom_gpkg.format(home_dir=str(Path.home())))
     _gpkg = config.pop('gpkg', None)
     gpkg = Path(_gpkg) if _gpkg is not None else None
     basins = config.pop('basins')
@@ -125,7 +129,10 @@ if __name__ == "__main__":
     naive_basin_agg = config.get('naive_basin_agg', False)
     # Setup the s3fs filesystem that is going to be used by xarray to open the zarr files
     _s3 = s3fs.S3FileSystem(anon=True)
-    if gpkg is None:
+    if dir_custom_gpkg is not None and 'all' in basins:
+        all_files = list(dir_custom_gpkg.glob('*.gpkg'))
+        basins = [str(re.search(r'\d+', x.stem).group()) for x in all_files]
+    elif gpkg is None:
         # List all the basins inside the hydrofabric s3 bucket path
         if 'all' in basins:
             # Expected format: 's3://lynker-spatial/hydrofabric/v20.1/camels/Gage_{basin_id}.gpkg'
@@ -140,7 +147,6 @@ if __name__ == "__main__":
     out_dir = Path(out_dir/f'{year_str}')
     config['out_dir'] = out_dir
     config['year_str'] = year_str
-    config['naive_basin_agg'] = naive_basin_agg
     # TODO add search for existing years and only fill in those which are missing
 
     # Create output directory in case it does not exist
@@ -181,6 +187,8 @@ if __name__ == "__main__":
             if b in [line.split(':')[0] for line in processed_basins]:
                 print(f"Basin {b} already processed. Skipping.")
                 continue
+            else:
+                print(f"Processing basin {b}")
 
             # Add basin to the log file with status 'processing'
             with open(log_file, 'a') as file:
@@ -189,10 +197,24 @@ if __name__ == "__main__":
             # This is a bug, this line should be unneccessary, but this is the simple fix I could fine.
             config['year_str'] = year_str
 
-            # read the geopackage from s3
-            gdf = gpd.read_file(
-                _s3.open(_basin_url.format(basin_id=b)), driver="gpkg", layer="divides"
-            ).to_crs(proj)
+            if dir_custom_gpkg is not None: # read gpkg from file
+                all_files = list(dir_custom_gpkg.glob("*.gpkg"))
+                basin_gpkg_path = [x for x in all_files if b in x.stem][0]
+                lyrs = gpd.list_layers(basin_gpkg_path)
+                if 'divides' in lyrs:
+                    gdf = gpd.read_file(basin_gpkg_path, driver="gpkg", layer="divides").to_crs(proj)
+                elif lyrs.shape[0] == 1:
+                    try: # Try reading the only layer available
+                        gdf = gpd.read_file(basin_gpkg_path, driver='gpkg').to_crs(proj)
+                    except Exception as e:
+                        print(f"Error reading {basin_gpkg_path}: {e}")
+                else: 
+                    print(f"ERROR: Not sure what layer name to use when attempting to read hydrofabric gpkg divides. Skipping {basin_gpkg_path}")
+                    continue
+            else:  # read the geopackage from s3
+                gdf = gpd.read_file(
+                    _s3.open(_basin_url.format(basin_id=b)), driver="gpkg", layer="divides"
+                ).to_crs(proj)
             config['name'] = b
             generate_forcing(gdf, config)
             
